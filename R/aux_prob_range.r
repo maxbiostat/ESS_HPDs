@@ -2,8 +2,6 @@
 ### If I draw n iid variates X = (X_1, ..., X_n) from a distribution with cdf F
 ### What is the probability that min(X) <= a and max(X) > b, for a < b two known
 ### constants?
-### Turns out that the answer is
-### Pr(min(X) > a and max(X) <= b) =  1 - {F(b)^n - (F(b)-F(a))^n}
 Rcpp::cppFunction('double logDiffExp(double x, double y)
 {return x > y ? 
 Rf_logspace_sub(x, y) :

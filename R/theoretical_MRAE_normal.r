@@ -6,7 +6,7 @@ theo_mrae <- function(n, mu, sigma){
   )
 }
 
-target.ess <- 625
+target.ess <- 200
 allowable.mrae <- 0.05
 
 f1 <- function(x) theo_mrae(n = target.ess, mu = 1, sigma = x)

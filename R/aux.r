@@ -1,17 +1,14 @@
-is_in <- function(x, l, u){
-  below <- x >= l
-  above <- x <= u
-  result <- as.logical(below * above)
-  return(result)
-}
-get_intervals <- function(X, alpha = 0.95){
-  BCI <- stats::quantile(X, probs = c(1-alpha, 1 + alpha)/2)
+get_intervals <- function(X, alpha = 0.95) {
+  BCI <- stats::quantile(X, probs = c(1 - alpha, 1 + alpha) / 2)
   HPD <- HDInterval::hdi(X, credMass = alpha)
   
   mm <- mean(X)
   vv <- var(X)
   
-  Nint <- qnorm(p = c(1-alpha, 1 + alpha)/2, mean = mm, sd = sqrt(vv))
+  Nint <-
+    qnorm(p = c(1 - alpha, 1 + alpha) / 2,
+          mean = mm,
+          sd = sqrt(vv))
   
   out <- tibble::tibble(
     mean = mm,
@@ -31,58 +28,42 @@ get_intervals <- function(X, alpha = 0.95){
   return(out)
 }
 
-lognormal_hpd <- function(alpha, lmean, lsd){
-  opt_int <- function(q1, a){
+lognormal_hpd <- function(alpha, lmean, lsd) {
+  opt_int <- function(q1, a) {
     q2 <- q1 + a
     cand <- qlnorm(p = c(q1, q2),
-                   meanlog = lmean, sdlog = lsd)
-    return(
-      cand[2] - cand[1]
-    )
-  } 
-  Opt <- optimise(
-    opt_int, a = alpha,
-    lower = 1E-10, upper = 1-alpha
-  )
+                   meanlog = lmean,
+                   sdlog = lsd)
+    return(cand[2] - cand[1])
+  }
+  Opt <- optimise(opt_int,
+                  a = alpha,
+                  lower = 1E-10,
+                  upper = 1 - alpha)
   q1.opt <- Opt$minimum
   q2.opt <- q1.opt + alpha
-  return(
-    qlnorm(p = c(q1.opt, q2.opt),
-           meanlog = lmean, sdlog = lsd)
-  )
-}
-lognormal_hpd_percentiles <- function(alpha, lmean, lsd){
-  opt_int <- function(q1, a){
-    q2 <- q1 + a
-    cand <- qlnorm(p = c(q1, q2),
-                   meanlog = lmean, sdlog = lsd)
-    return(
-      cand[2] - cand[1]
-    )
-  } 
-  Opt <- optimise(
-    opt_int, a = alpha,
-    lower = 1E-10, upper = 1-alpha
-  )
-  q1.opt <- Opt$minimum
-  q2.opt <- q1.opt + alpha
-  return(
-    c(q1.opt, q2.opt)
-  )
-}
-compute_MRAE <- function(hats, theta0){
-  mean(abs(1-(hats/theta0)))
-}
-compute_MSE <- function(hats, theta0){
-  VV <- var(hats)
-  BB <- mean(hats) - theta0
-  MSE <- mean((hats-theta0)^2)
-  return(c(
-    est_variance = VV,
-    est_bias = BB,
-    mse = MSE
+  return(qlnorm(
+    p = c(q1.opt, q2.opt),
+    meanlog = lmean,
+    sdlog = lsd
   ))
 }
-estimate_p <- function(q, X){
+lognormal_hpd_percentiles <- function(alpha, lmean, lsd) {
+  opt_int <- function(q1, a) {
+    q2 <- q1 + a
+    cand <- qlnorm(p = c(q1, q2),
+                   meanlog = lmean,
+                   sdlog = lsd)
+    return(cand[2] - cand[1])
+  }
+  Opt <- optimise(opt_int,
+                  a = alpha,
+                  lower = 1E-10,
+                  upper = 1 - alpha)
+  q1.opt <- Opt$minimum
+  q2.opt <- q1.opt + alpha
+  return(c(q1.opt, q2.opt))
+}
+estimate_p <- function(q, X) {
   mean(X <= q)
 }
