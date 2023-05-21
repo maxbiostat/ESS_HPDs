@@ -67,3 +67,18 @@ lognormal_hpd_percentiles <- function(alpha, lmean, lsd) {
 estimate_p <- function(q, X) {
   mean(X <= q)
 }
+exponential_hpd <- function(alpha, theta) {
+  opt_int <- function(q1, a) {
+    q2 <- q1 + a
+    cand <- qexp(p = c(q1, q2), rate = theta)
+    return(cand[2] - cand[1])
+  }
+  Opt <- optimise(opt_int,
+                  a = alpha,
+                  lower = 1E-10,
+                  upper = 1 - alpha)
+  q1.opt <- Opt$minimum
+  q2.opt <- q1.opt + alpha
+  return(qexp(
+    p = c(q1.opt, q2.opt), rate = theta))
+}
