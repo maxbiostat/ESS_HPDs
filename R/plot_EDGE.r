@@ -3,16 +3,11 @@ library(ggplot2)
 library(ggh4x)
 source("aux.r")
 
-compute_height_hpds <- function(fname, level = 0.95) {
-  raw.log <- read.table(fname, header = TRUE)
-  only.clades <- raw.log[,-1]
-  cladenames <- colnames(only.clades)
-  cladenames <- gsub("yang.", "", cladenames)
-  newNames <- paste0("clade_", match(cladenames, sort(cladenames)))
-  lookup <- tibble::tibble(original = cladenames,
-                           new = newNames)
+compute_height_hpds <- function(obj, level = 0.95) {
+  lookup <- obj$lookup
+  only.clades <- obj$clade_log
   K <- ncol(only.clades)
-  ints.list <- parallel::mclapply(1:K, function(i)
+  ints.list <- parallel::mclapply(1:(K-2), function(i)
     get_intervals(X = only.clades[, i],
                   alpha = level), mc.cores = 4)
   intervals <- do.call(rbind, ints.list)
@@ -21,27 +16,26 @@ compute_height_hpds <- function(fname, level = 0.95) {
   return(out)
 }
 
-organise_heights <- function(fname) {
-  raw.log <- read.table(fname, header = TRUE)
-  only.clades <- raw.log[,-1]
-  cladenames <- colnames(only.clades)
-  cladenames <- gsub("yang.", "", cladenames)
-  newNames <- paste0("clade_", match(cladenames, sort(cladenames)))
-  lookup <- tibble::tibble(original = cladenames,
-                           new = newNames)
+organise_heights <- function(obj) {
+  lookup <- obj$lookup
+  only.clades <- obj$clade_log
   K <- ncol(only.clades)
+  
   rawout <- reshape2::melt(only.clades)
   
-  out <- tibble::tibble(clade = lookup$new[match(rawout$variable, sort(unique(rawout$variable)))],
+  out <- tibble::tibble(clade = rawout$variable,
                         height = rawout$value)
   return(list(clade_lookup = lookup,
               melted_heights = out))
 }
 #########
 
-the.file <- "../data/yang-mcc-clade-heights.log"
-summaries <- compute_height_hpds(the.file, level = .99)
-heights.df <- organise_heights(the.file)
+clade.out <- list(
+  lookup = read.csv("../data/clade_lookup_Yang_golden.csv"),
+  clade_log = read.csv("../data/combined_golden_Yang.log")
+)
+summaries <- compute_height_hpds(obj = clade.out, level = .95)
+heights.df <- organise_heights(obj = clade.out)$melted_heights
 
 
 methods <- rep(c("BCI", "HPD", "Normal_approx"),
