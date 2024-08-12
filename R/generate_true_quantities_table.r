@@ -22,8 +22,8 @@ for(k in 1:K){
                              lsd = target.info$sigma[k])
   
   HPDs[[k]] <- lognormal_hpd(alpha = Alpha,
-                lmean = target.info$m[k],
-                lsd = target.info$sigma[k])
+                             lmean = target.info$m[k],
+                             lsd = target.info$sigma[k])
   
   BCI.ps[[k]] <- plnorm(q = BCIs[[k]],
                         meanlog = target.info$m[k],
@@ -34,13 +34,13 @@ for(k in 1:K){
                         sdlog = target.info$sigma[k])
   
   means[k] <- lognormal_mean(lmean = target.info$m[k],
-                              lsd = target.info$sigma[k])
+                             lsd = target.info$sigma[k])
   
   medians[k] <- lognormal_median(lmean = target.info$m[k],
-                             lsd = target.info$sigma[k])
+                                 lsd = target.info$sigma[k])
   
   vars[k] <- lognormal_variance(lmean = target.info$m[k],
-                             lsd = target.info$sigma[k])
+                                lsd = target.info$sigma[k])
 }
 
 bci.df <- data.frame(do.call(rbind, BCIs))
@@ -56,11 +56,11 @@ colnames(bci.p.df) <- c("bci_lwr_p", "bci_upr_p")
 colnames(hpd.p.df) <- c("hpd_lwr_p", "hpd_upr_p")
 
 complete <- data.frame(target.info, 
-                   mean = means,
-                   median = medians,
-                   var = vars,
-                   bci.df, hpd.df,
-                   bci.p.df, hpd.p.df)
+                       mean = means,
+                       median = medians,
+                       var = vars,
+                       bci.df, hpd.df,
+                       bci.p.df, hpd.p.df)
 
 complete
 
