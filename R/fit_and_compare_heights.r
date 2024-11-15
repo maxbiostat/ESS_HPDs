@@ -70,9 +70,7 @@ fits <- do.call(rbind,
 
 fits <- data.frame(clade = names(only.clades), fits)
 
-res <- fits[, -1]
-
-write.csv(res,
+write.csv(fits,
           file = "../saved_data/distribution_fits_Yang.csv",
           row.names = FALSE)
 

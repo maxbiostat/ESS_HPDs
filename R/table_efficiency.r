@@ -47,7 +47,8 @@ compute.time <- system.time(
                     parallel::mclapply(1:nrow(the.grid), function(k){
                       ddf <- the.grid[k, ]
                       cname <- gsub("_p", "", ddf$percentile)
-                      out <- calculate_quantities(m = ddf$m, v = ddf$v,
+                      out <- calculate_quantities(m = ddf$m,
+                                                  v = ddf$v,
                                                   p = ddf$p,
                                                   xi_p = ddf[, cname],
                                                   eff = ddf$eff)

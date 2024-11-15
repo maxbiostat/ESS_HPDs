@@ -7,7 +7,7 @@ specs <- read.csv(
   "../saved_data/efficiency_table_lognormal.csv"
 )
 
-Delta <- 0.05
+Delta <- 0.1
 
 bounds <- unlist(
   parallel::mclapply(1:nrow(specs),
@@ -43,5 +43,6 @@ with.bounds <- data.frame(
 head(with.bounds)
 
 write.csv(with.bounds, 
-          file = "../saved_data/ESS_bounds_quantiles_lognormal.csv",
+          file = paste0("../saved_data/ESS_bounds_quantiles_lognormal_tol=",
+                        Delta, ".csv"),
           row.names = FALSE)

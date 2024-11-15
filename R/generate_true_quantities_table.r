@@ -59,6 +59,7 @@ complete <- data.frame(target.info,
                        mean = means,
                        median = medians,
                        var = vars,
+                       cv = sqrt(vars)/means,
                        bci.df, hpd.df,
                        bci.p.df, hpd.p.df)
 

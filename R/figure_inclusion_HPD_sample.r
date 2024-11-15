@@ -4,14 +4,26 @@ source("aux_lognormal_targets.r")
 ###########
 sym.Mu <-  subset(target.info, target == "symmetric")$m
 sym.Sigmasq <-  subset(target.info, target == "symmetric")$v
-asym.Mu <-  subset(target.info, target == "moderate")$m
-asym.Sigmasq <-  subset(target.info, target == "moderate")$v
+
+mod.Mu <-  subset(target.info, target == "moderate")$m
+mod.Sigmasq <-  subset(target.info, target == "moderate")$v
+
+asym.Mu <-  subset(target.info, target == "asymmetric")$m
+asym.Sigmasq <-  subset(target.info, target == "asymmetric")$v
+
 Alpha <- .95
 symm_lcdf <- function(x)
   plnorm(
     q = x,
     meanlog =  sym.Mu,
     sdlog =  sqrt(sym.Sigmasq),
+    log.p = TRUE
+  )
+mod_lcdf <- function(x)
+  plnorm(
+    q = x,
+    meanlog = mod.Mu,
+    sdlog =  sqrt(mod.Sigmasq),
     log.p = TRUE
   )
 asymm_lcdf <- function(x)
@@ -25,6 +37,10 @@ asymm_lcdf <- function(x)
 sym.HPD <- lognormal_hpd(alpha = Alpha,
                          lmean = sym.Mu,
                          lsd = sqrt(sym.Sigmasq))
+
+mod.HPD <- lognormal_hpd(alpha = Alpha,
+                         lmean = mod.Mu,
+                         lsd = sqrt(mod.Sigmasq))
 
 asym.HPD <- lognormal_hpd(alpha = Alpha,
                           lmean = asym.Mu,
@@ -44,6 +60,13 @@ pS <- function(k)
                    a = sym.HPD[1],
                    b = sym.HPD[2])
 pS <- Vectorize(pS)
+
+pMod <- function(k)
+  prob_of_interest(logcdf = mod_lcdf,
+                   n = k,
+                   a = mod.HPD[1],
+                   b = mod.HPD[2])
+pMod <- Vectorize(pMod)
 
 pAS <- function(k)
   prob_of_interest(logcdf = asymm_lcdf,
@@ -65,12 +88,18 @@ pBCI <- Vectorize(pBCI)
 ## The actual plot
 
 IncProb <- .80
-colours <- c("#2297E6", "#DF536B", "black")
+colours <- c("#2297E6", "#DF536B", "darkorchid3", "black")
 
+export <- TRUE
 
-pdf(file = "../figures/min_sample_size_cover_HPD_lognormal.pdf",   
-    width = 11.7, 
-    height = 8.3)
+if (export) {
+  pdf(file = "../figures/min_sample_size_cover_HPD_lognormal.pdf",
+      width = 11.7,
+      height = 8.3)
+}
+
+par(mar = c(4,6,4,4)) # all sides have 3 lines of space
+par(oma = rep(0, 4)) # all sides have 3 lines of space
 
 curve(
   pS,
@@ -81,38 +110,51 @@ curve(
   ylim = c(0, 1),
   main = "",
   lwd = 4,
-  col = colours[1]
+  col = colours[1],
+  cex.main = 2,
+  cex.sub = 2,
+  cex.lab = 2,
+  cex.axis = 2
 )
-curve(pAS,
+curve(pMod,
       1,
       500,
       col = colours[2],
-      lwd = 4,
+      lwd = 6,
+      add = TRUE)
+curve(pAS,
+      1,
+      500,
+      col = colours[3],
+      lwd = 6,
       add = TRUE)
 curve(
   pBCI,
   1,
   500,
-  col = colours[3],
-  lwd = 4,
+  col = colours[4],
+  lwd = 6,
   lty = 2,
   add = TRUE
 )
 abline(h = IncProb, lwd = 2, lty = 3)
 legend(
-  x = "bottomright",
-  legend = c("Symmetric", "Asymmetric"),
+  x = "right",
+  legend = c("Symmetric", "Moderate", "Asymmetric", "BCI"),
   col = colours,
-  lwd = 3,
-  bty = 'n'
+  lwd = 4,
+  lty = c(1, 1, 1, 2),
+  bty = 'n',
+  cex = 1.3
 )
 
-dev.off()
+if (export) {
+  dev.off()
+}
+
 
 optimise(function(n)
-  (pS(n) - IncProb) ^ 2,
-  c(1, 1500))
+  (pS(n) - IncProb) ^ 2, c(1, 1500))
 
 optimise(function(n)
-  (pAS(n) - IncProb) ^ 2,
-  c(1, 2000))
+  (pAS(n) - IncProb) ^ 2, c(1, 2000))

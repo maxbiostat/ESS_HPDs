@@ -20,3 +20,44 @@ ESS_bound_Liu_known_lognormal <- function(m,
   
   return(S)
 }
+
+
+min_samples_iid_CLT <- function(q, dens, Qf,
+                            r_precision = 0.01, level = 0.95){
+  Z <- qnorm(p = (1 + level)/2)
+  num <- Z^2 * q * (1 - q)
+  xi_q <- Qf(q)
+  denom <- (r_precision * xi_q * dens(xi_q))^2
+  N <- floor(num/denom) + 1
+  return(N)
+}
+
+cdf_order_2 <- function(x, k, n, m, s){
+  thelogF <- function(x) plnorm(x, m, s, log.p = TRUE)
+  theP <- exp(thelogF(x))
+  res <- pbinom(q = n, size = n, prob = theP) - pbinom(q = k -1, size = n, prob = theP)
+  return(res)
+}
+
+min_samples_iid_order <- function(q, m, s,
+                                  r_precision = 0.01, level = 0.95, Nmax = 1e7){
+  iniM <- round(1/q)
+  M <- iniM
+  xi_q <- qlnorm(q, meanlog = m, sdlog = s)
+  A <- (1 - r_precision) * xi_q
+  B <- (1 + r_precision) * xi_q
+  get_prob <- function(M){
+    theK <- round(q * M)
+    prob <- cdf_order_2(B, k = theK, n = M, m = m, s = s) - cdf_order_2(A, k = theK, n = M, m = m, s = s)
+    return(prob)
+  }
+  obj <- function(M) return((get_prob(round(M)) - level)^2)
+  Opt <- optimise(obj, interval = c(iniM, Nmax))
+  resN <- round(Opt$minimum)
+  out <- list(
+    N = resN,
+    error = Opt$objective,
+    attained_prob = get_prob(resN)
+  )
+  return(out)
+}
